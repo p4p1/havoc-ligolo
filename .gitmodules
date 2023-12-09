@@ -1,0 +1,3 @@
+[submodule "ligolo-ng"]
+	path = ligolo-ng
+	url = https://github.com/Nicocha30/ligolo-ng
