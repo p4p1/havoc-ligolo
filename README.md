@@ -41,6 +41,27 @@ prompted with the command to access your ligolo server through a tmux session:
 
 ![image](https://github.com/p4p1/havoc-ligolo/assets/19672114/9cdc566a-a799-4c74-81bc-b84132c46232)
 
-From there you can manage your ligolo server:
+From there you can manage your ligolo server. You have now setup the server correctly!
 
 ![image](https://github.com/p4p1/havoc-ligolo/assets/19672114/bccfbfb4-4f77-40dd-b904-1b728843153d)
+
+## Connecting a clent
+
+To connect a client after the server is setup you can now select a demon and run the following command:
+```
+ligolo-ng
+```
+That command will upload the agent.exe file inside of c:\windows\tasks and run it with the arguments
+to connect to your server:
+
+![image](https://github.com/p4p1/havoc-ligolo/assets/19672114/74475282-d364-4751-929a-9060b0f5677c)
+
+You can now also view in the server the connection made and you can then interact with
+it and tunnel your traffic:
+
+![image](https://github.com/p4p1/havoc-ligolo/assets/19672114/928f47e6-057c-4d3f-9076-77ed8a211c7d)
+
+Now that I am connected in my example I can ping the machine:
+
+![image](https://github.com/p4p1/havoc-ligolo/assets/19672114/bcd40a9f-b354-4eae-87f2-945e6ece4f98)
+
