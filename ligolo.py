@@ -34,7 +34,7 @@ while not os.path.exists(current_dir + install_path):
     install_path = ""
     havocui.inputdialog("Install path", "Please enter your install path here for the module to work correctly:")
 
-settings_pane = havocui.Widget("Settings", True)
+settings_pane = havocui.Widget("Ligolo Settings", True)
 proxy_bin = current_dir + install_path + "ligolo-ng/proxy"
 agent_bin = current_dir + install_path + "ligolo-ng/agent.exe"
 arguments = "-selfcert -laddr %s:%s"
@@ -42,6 +42,7 @@ tmux_session_for_server = "ligolo_server_havoc"
 settings = {
     "ip_addr": "0.0.0.0",
     "port": "1234",
+    "admin": False,
     "ranges": []
 }
 
@@ -52,6 +53,9 @@ def set_ip_listener(addr):
 def set_port_listener(port):
     global settings
     settings["port"] = port
+def set_admin():
+    global settings
+    settings["admin"] = not settings["admin"]
 def run_save():
     # A function that does nothing but to actually have the events trigger
     # on the Line Edits you need to focus out of the text box this is for that
@@ -66,6 +70,7 @@ def open_settings():
     settings_pane.addLineedit(settings["ip_addr"], set_ip_listener)
     settings_pane.addLabel("<span style='color:#71e0cb'>Listener port:</span>")
     settings_pane.addLineedit(settings["port"], set_port_listener)
+    settings_pane.addCheckbox("Run server as root", set_admin, settings["admin"])
     settings_pane.addButton("Save", run_save)
     settings_pane.setSmallTab()
 
@@ -93,8 +98,12 @@ def start_server():
     if is_server_ligolo_running() == False:
         processed_args = arguments % (settings["ip_addr"], settings["port"])
         os.system("tmux new-session -d -s %s" % tmux_session_for_server)
-        os.system("tmux send-keys -t %s \"%s %s\" C-m" % (tmux_session_for_server, proxy_bin, processed_args))
-        havocui.messagebox("Important!", "You can now connect to the ligolo server using the command: tmux a -t ligolo_server_havoc")
+        if settings["admin"]:
+            os.system("tmux send-keys -t %s \"sudo %s %s\" C-m" % (tmux_session_for_server, proxy_bin, processed_args))
+            havocui.messagebox("Important!", "You can now connect to the ligolo server using the following command, please connect now to type in your sudo password: tmux a -t ligolo_server_havoc")
+        else:
+            os.system("tmux send-keys -t %s \"%s %s\" C-m" % (tmux_session_for_server, proxy_bin, processed_args))
+            havocui.messagebox("Important!", "You can now connect to the ligolo server using the command: tmux a -t ligolo_server_havoc")
 
 def add_ip_range():
     ip_range = havocui.inputdialog("Enter IP range", "Provide the IP range to be added to the interface with the CIDR notation:")
