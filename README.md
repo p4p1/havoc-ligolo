@@ -1,5 +1,19 @@
 # havoc-ligolo
-A Havoc UI tool to pivot onto a machine using ligolo-ng
+A Havoc UI tool to pivot onto a machine using [ligolo-ng](https://github.com/Nicocha30/ligolo-ng).
+
+![image](https://raw.githubusercontent.com/p4p1/havoc-ligolo/main/havoc-ligolo.png)
+
+# Dependencies
+Make sure you have on your machine the following to use this tools:
+ - kdesu
+ - go
+ - tmux
+
+# Install
+To install this script first make sure you have the apropriate dependencies installed
+you can then download it through the havoc extensions tab inside of Attack > Extentions:
+
+![image](https://github.com/p4p1/havoc-ligolo/assets/19672114/d3b5fdd2-9f02-40d4-a092-a1557c12efe4)
 
 # Usage
 To connect to ligolo on the agent you first need to setup. In this example I have
