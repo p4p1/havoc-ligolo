@@ -68,7 +68,7 @@ def select_range(cidr):
 def run_remove_cidr():
     global selected_cidr_to_delete
     global settings
-    if selected_cidr_to_delete < len(settings["ranges"]) and selected_cidr_to_delete != 0:
+    if selected_cidr_to_delete < len(settings["ranges"]) and selected_cidr_to_delete <= 0:
         settings["ranges"].remove(settings["ranges"][selected_cidr_to_delete])
     else:
         havocui.messagebox("Error!", "Selected CIDR not saved!")
@@ -80,7 +80,6 @@ def set_key_file(path):
     settings["keyfile"] = path
 def run_save():
     global settings
-    print(settings)
     if xor(settings["certfile"] == "None", settings["keyfile"] == "None"):
         havocui.errormessage("You have only set one of the two certificates...")
         return
@@ -97,7 +96,7 @@ def open_settings():
     settings_pane.addLabel("<span style='color:#71e0cb'>Listener port:</span>")
     settings_pane.addLineedit(settings["port"], set_port_listener)
     settings_pane.addCheckbox("Run server as root", set_admin, settings["admin"])
-    settings_pane.addLabel("<span style='color:#71e0cb'>Certificates paths:</span>")
+    settings_pane.addLabel("<span style='color:#71e0cb'>Certificates paths (set both as None to dissable):</span>")
     settings_pane.addLabel("Certificate file:")
     settings_pane.addLineedit(settings["certfile"], set_cert_file)
     settings_pane.addLabel("Key file:")
@@ -148,6 +147,7 @@ def add_ip_range():
         settings["ranges"].append(ip_range.decode('ascii'))
         if is_server_ligolo_running() == True:
             os.system("kdesu -c \"ip route add %s dev ligolo\"" % ip_range)
+        run_save()
 
 def run_client(demonID, *param):
     if is_server_ligolo_running() == False:
