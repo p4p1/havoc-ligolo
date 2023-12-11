@@ -45,9 +45,13 @@ settings = {
     "ip_addr": "0.0.0.0",
     "port": "1234",
     "admin": False,
-    "ranges": []
+    "ranges": [],
+    "certfile": "None",
+    "keyfile": "None"
 }
 
+def xor(x, y):
+    return bool((x and not y) or (not x and y))
 # Functions for the GUI to manage the global dic
 def set_ip_listener(addr):
     global settings
@@ -68,9 +72,18 @@ def run_remove_cidr():
         settings["ranges"].remove(settings["ranges"][selected_cidr_to_delete])
     else:
         havocui.messagebox("Error!", "Selected CIDR not saved!")
+def set_cert_file(path):
+    global settings
+    settings["certfile"] = path
+def set_key_file(path):
+    global settings
+    settings["keyfile"] = path
 def run_save():
     global settings
     print(settings)
+    if xor(settings["certfile"] == "None", settings["keyfile"] == "None"):
+        havocui.errormessage("You have only set one of the two certificates...")
+        return
     with open(conf_path, "w") as fp:
         json.dump(settings, fp)
 
@@ -84,11 +97,14 @@ def open_settings():
     settings_pane.addLabel("<span style='color:#71e0cb'>Listener port:</span>")
     settings_pane.addLineedit(settings["port"], set_port_listener)
     settings_pane.addCheckbox("Run server as root", set_admin, settings["admin"])
-    settings_pane.addButton("Save", run_save)
+    settings_pane.addLabel("<span style='color:#71e0cb'>Certificates paths:</span>")
+    settings_pane.addLineedit(settings["certfile"], set_cert_file)
+    settings_pane.addLineedit(settings["keyfile"], set_key_file)
     if len(settings["ranges"]) > 0:
         settings_pane.addLabel("<span style='color:#71e0cb'>Saved IP ranges:</span>")
         settings_pane.addCombobox(select_range, "Please select a cidr", *settings["ranges"])
         settings_pane.addButton("Remove CIDR", run_remove_cidr)
+    settings_pane.addButton("Save", run_save)
     settings_pane.setSmallTab()
 
 # function to check if the server is running in the background
@@ -114,6 +130,8 @@ def start_server():
         os.system("kdesu -c \"ip route add %s dev ligolo\"" % cidr)
     if is_server_ligolo_running() == False:
         processed_args = arguments % (settings["ip_addr"], settings["port"])
+        if settings["certfile"] != "None":
+            processed_args += " -certfile %s -keyfile %s" % (settings["certfile"], settings["keyfile"])
         os.system("tmux new-session -d -s %s" % tmux_session_for_server)
         if settings["admin"]:
             os.system("tmux send-keys -t %s \"sudo %s %s\" C-m" % (tmux_session_for_server, proxy_bin, processed_args))
@@ -124,9 +142,10 @@ def start_server():
 
 def add_ip_range():
     ip_range = havocui.inputdialog("Enter IP range", "Provide the IP range to be added to the interface with the CIDR notation:")
-    settings["ranges"].append(ip_range.decode('ascii'))
-    if is_server_ligolo_running() == True:
-        os.system("kdesu -c \"ip route add %s dev ligolo\"" % ip_range)
+    if ip_range.decode('ascii') != "":
+        settings["ranges"].append(ip_range.decode('ascii'))
+        if is_server_ligolo_running() == True:
+            os.system("kdesu -c \"ip route add %s dev ligolo\"" % ip_range)
 
 def run_client(demonID, *param):
     if is_server_ligolo_running() == False:
