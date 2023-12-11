@@ -98,7 +98,9 @@ def open_settings():
     settings_pane.addLineedit(settings["port"], set_port_listener)
     settings_pane.addCheckbox("Run server as root", set_admin, settings["admin"])
     settings_pane.addLabel("<span style='color:#71e0cb'>Certificates paths:</span>")
+    settings_pane.addLabel("Certificate file:")
     settings_pane.addLineedit(settings["certfile"], set_cert_file)
+    settings_pane.addLabel("Key file:")
     settings_pane.addLineedit(settings["keyfile"], set_key_file)
     if len(settings["ranges"]) > 0:
         settings_pane.addLabel("<span style='color:#71e0cb'>Saved IP ranges:</span>")
