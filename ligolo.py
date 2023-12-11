@@ -22,7 +22,7 @@
 
 
 import havoc, havocui
-import os
+import os, json
 import subprocess
 from shutil import which
 
@@ -37,6 +37,7 @@ while not os.path.exists(current_dir + install_path):
 settings_pane = havocui.Widget("Ligolo Settings", True)
 proxy_bin = current_dir + install_path + "ligolo-ng/proxy"
 agent_bin = current_dir + install_path + "ligolo-ng/agent.exe"
+conf_path = current_dir + install_path + "settings.json"
 arguments = "-selfcert -laddr %s:%s"
 tmux_session_for_server = "ligolo_server_havoc"
 settings = {
@@ -57,9 +58,10 @@ def set_admin():
     global settings
     settings["admin"] = not settings["admin"]
 def run_save():
-    # A function that does nothing but to actually have the events trigger
-    # on the Line Edits you need to focus out of the text box this is for that
-    return
+    global settings
+    print(settings)
+    with open(conf_path, "w") as fp:
+        json.dump(settings, fp)
 
 # Actural GUI stuff for settings
 def open_settings():
@@ -94,7 +96,7 @@ def start_server():
     os.system("kdesu -c \"ip tuntap add user $(whoami) mode tun ligolo\"")
     os.system("kdesu -c \"ip link set ligolo up\"")
     for cidr in settings["ranges"]:
-        os.system("kdesu -c \"ip route add %s dev ligolo\"" % cidr.decode('ascii'))
+        os.system("kdesu -c \"ip route add %s dev ligolo\"" % cidr)
     if is_server_ligolo_running() == False:
         processed_args = arguments % (settings["ip_addr"], settings["port"])
         os.system("tmux new-session -d -s %s" % tmux_session_for_server)
@@ -107,7 +109,7 @@ def start_server():
 
 def add_ip_range():
     ip_range = havocui.inputdialog("Enter IP range", "Provide the IP range to be added to the interface with the CIDR notation:")
-    settings["ranges"].append(ip_range)
+    settings["ranges"].append(ip_range.decode('ascii'))
     if is_server_ligolo_running() == True:
         os.system("kdesu -c \"ip route add %s dev ligolo\"" % ip_range)
 
@@ -132,6 +134,9 @@ def run_client(demonID, *param):
 if which("go") == None or which("tmux") == None or which("kdesu") == None:
     havocui.errormessage("You are missing one of these dependencies: go, tmux, kdesu.\nPlease install them and restart havoc to use the ligolo extension.")
 else:
+    if os.path.exists(conf_path):
+        with open(conf_path, "r") as fp:
+            settings = json.load(fp)
     if not os.path.exists(agent_bin) or not os.path.exists(proxy_bin):
         os.chdir("%sligolo-ng/" % (current_dir + install_path))
         os.system("GOOS=windows go build -o agent.exe cmd/agent/main.go")
