@@ -40,6 +40,7 @@ agent_bin = current_dir + install_path + "ligolo-ng/agent.exe"
 conf_path = current_dir + install_path + "settings.json"
 arguments = "-selfcert -laddr %s:%s"
 tmux_session_for_server = "ligolo_server_havoc"
+selected_cidr_to_delete = ""
 settings = {
     "ip_addr": "0.0.0.0",
     "port": "1234",
@@ -57,6 +58,16 @@ def set_port_listener(port):
 def set_admin():
     global settings
     settings["admin"] = not settings["admin"]
+def select_range(cidr):
+    global selected_cidr_to_delete
+    selected_cidr_to_delete = cidr - 1 # have to remove 1 here for default arg
+def run_remove_cidr():
+    global selected_cidr_to_delete
+    global settings
+    if selected_cidr_to_delete < len(settings["ranges"]) and selected_cidr_to_delete != 0:
+        settings["ranges"].remove(settings["ranges"][selected_cidr_to_delete])
+    else:
+        havocui.messagebox("Error!", "Selected CIDR not saved!")
 def run_save():
     global settings
     print(settings)
@@ -74,6 +85,10 @@ def open_settings():
     settings_pane.addLineedit(settings["port"], set_port_listener)
     settings_pane.addCheckbox("Run server as root", set_admin, settings["admin"])
     settings_pane.addButton("Save", run_save)
+    if len(settings["ranges"]) > 0:
+        settings_pane.addLabel("<span style='color:#71e0cb'>Saved IP ranges:</span>")
+        settings_pane.addCombobox(select_range, "Please select a cidr", *settings["ranges"])
+        settings_pane.addButton("Remove CIDR", run_remove_cidr)
     settings_pane.setSmallTab()
 
 # function to check if the server is running in the background
