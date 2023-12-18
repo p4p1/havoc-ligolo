@@ -146,7 +146,7 @@ def add_ip_range():
     if ip_range.decode('ascii') != "":
         settings["ranges"].append(ip_range.decode('ascii'))
         if is_server_ligolo_running() == True:
-            os.system("kdesu -c \"ip route add %s dev ligolo\"" % ip_range)
+            os.system("kdesu -c \"ip route add %s dev ligolo\"" % ip_range.decode('ascii'))
         run_save()
 
 def run_client(demonID, *param):
