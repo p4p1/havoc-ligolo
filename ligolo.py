@@ -166,6 +166,7 @@ def run_client(demonID, *param):
     demon.Command(TaskID, "shell .\\agent.exe -connect %s:%s -ignore-cert" % (settings["ip_addr"], settings["port"]))
     # once I get that working
     #demon.Command(TaskID, "noconsolation %s -connect %s:%s -ignore-cert" % (agent_bin, settings["ip_addr"], settings["port"]))
+    return TaskID
 
 if which("go") == None or which("tmux") == None or which("kdesu") == None:
     havocui.errormessage("You are missing one of these dependencies: go, tmux, kdesu.\nPlease install them and restart havoc to use the ligolo extension.")
