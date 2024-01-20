@@ -18,7 +18,7 @@
 # dependencies:
 #  -go
 #  -tmux
-#  -kdesu
+#  -kdesu / pkexec (only for modern systems)
 
 
 import havoc, havocui
@@ -35,6 +35,7 @@ while not os.path.exists(current_dir + install_path):
     havocui.inputdialog("Install path", "Please enter your install path here for the module to work correctly:")
 
 settings_pane = havocui.Widget("Ligolo Settings", True)
+sudo_command = "" # this is the wrapper for what will be passed to run a command as admin
 proxy_bin = current_dir + install_path + "ligolo-ng/proxy"
 agent_bin = current_dir + install_path + "ligolo-ng/agent.exe"
 conf_path = current_dir + install_path + "settings.json"
@@ -125,10 +126,10 @@ def start_server():
     if "0.0.0.0" == settings_ligolo["ip_addr"]:
         havocui.errormessage("Your listener ip address is set as 0.0.0.0 which is not possible to connect back to! Please set it to your ip address.")
         return
-    os.system("kdesu -c \"ip tuntap add user $(whoami) mode tun ligolo\"")
-    os.system("kdesu -c \"ip link set ligolo up\"")
+    os.system("%s \"ip tuntap add user $(whoami) mode tun ligolo\"" % sudo_command)
+    os.system("%s \"ip link set ligolo up\"" % sudo_command)
     for cidr in settings_ligolo["ranges"]:
-        os.system("kdesu -c \"ip route add %s dev ligolo\"" % cidr)
+        os.system(" \"ip route add %s dev ligolo\"" % (sudo_command, cidr))
     if is_server_ligolo_running() == False:
         processed_args = arguments % (settings_ligolo["ip_addr"], settings_ligolo["port"])
         if settings_ligolo["certfile"] != "None":
@@ -146,7 +147,7 @@ def add_ip_range():
     if ip_range.decode('ascii') != "":
         settings_ligolo["ranges"].append(ip_range.decode('ascii'))
         if is_server_ligolo_running() == True:
-            os.system("kdesu -c \"ip route add %s dev ligolo\"" % ip_range.decode('ascii'))
+            os.system("%s \"ip route add %s dev ligolo\"" % (sudo_command, ip_range.decode('ascii')))
         run_save()
 
 def run_client(demonID, *param):
@@ -168,9 +169,13 @@ def run_client(demonID, *param):
     #demon.Command(TaskID, "noconsolation %s -connect %s:%s -ignore-cert" % (agent_bin, settings["ip_addr"], settings["port"]))
     return TaskID
 
-if which("go") == None or which("tmux") == None or which("kdesu") == None:
-    havocui.errormessage("You are missing one of these dependencies: go, tmux, kdesu.\nPlease install them and restart havoc to use the ligolo extension.")
+if which("go") == None or which("tmux") == None or (which("kdesu") == None and which("pkexec") == None):
+    havocui.errormessage("You are missing one of these dependencies: go, tmux, kdesu (or pkexec for more modern systems).\nPlease install them and restart havoc to use the ligolo extension.")
 else:
+    if which('pkexec') != None:
+        sudo_command = "pkexec"
+    if which('kdesu') != None: # kdesu takes priority over pkexec if installed
+        sudo_command = "kdesu -c"
     if os.path.exists(conf_path):
         with open(conf_path, "r") as fp:
             settings_ligolo = json.load(fp)
