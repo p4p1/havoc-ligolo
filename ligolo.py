@@ -53,6 +53,12 @@ settings_ligolo = {
 
 def xor(x, y):
     return bool((x and not y) or (not x and y))
+def run_as_root(cmd):
+    global sudo_command
+    if sudo_command == "pkexec -u root":
+        os.system("%s %s" % (sudo_command, cmd))
+    else: # kdesu needs commands wrapped in quotes
+        os.system("%s \"%s\"" % (sudo_command, cmd))
 # Functions for the GUI to manage the global dic
 def set_ip_listener(addr):
     global settings_ligolo
@@ -126,10 +132,10 @@ def start_server():
     if "0.0.0.0" == settings_ligolo["ip_addr"]:
         havocui.errormessage("Your listener ip address is set as 0.0.0.0 which is not possible to connect back to! Please set it to your ip address.")
         return
-    os.system("%s \"ip tuntap add user $(whoami) mode tun ligolo\"" % sudo_command)
-    os.system("%s \"ip link set ligolo up\"" % sudo_command)
+    run_as_root("ip tuntap add user $(whoami) mode tun ligolo")
+    run_as_root("ip link set ligolo up")
     for cidr in settings_ligolo["ranges"]:
-        os.system(" \"ip route add %s dev ligolo\"" % (sudo_command, cidr))
+        run_as_root("ip route add %s dev ligolo" % cidr)
     if is_server_ligolo_running() == False:
         processed_args = arguments % (settings_ligolo["ip_addr"], settings_ligolo["port"])
         if settings_ligolo["certfile"] != "None":
@@ -147,7 +153,7 @@ def add_ip_range():
     if ip_range.decode('ascii') != "":
         settings_ligolo["ranges"].append(ip_range.decode('ascii'))
         if is_server_ligolo_running() == True:
-            os.system("%s \"ip route add %s dev ligolo\"" % (sudo_command, ip_range.decode('ascii')))
+            run_as_root("ip route add %s dev ligolo" % ip_range.decode('ascii'))
         run_save()
 
 def run_client(demonID, *param):
@@ -173,7 +179,7 @@ if which("go") == None or which("tmux") == None or (which("kdesu") == None and w
     havocui.errormessage("You are missing one of these dependencies: go, tmux, kdesu (or pkexec for more modern systems).\nPlease install them and restart havoc to use the ligolo extension.")
 else:
     if which('pkexec') != None:
-        sudo_command = "pkexec"
+        sudo_command = "pkexec -u root"
     if which('kdesu') != None: # kdesu takes priority over pkexec if installed
         sudo_command = "kdesu -c"
     if os.path.exists(conf_path):
