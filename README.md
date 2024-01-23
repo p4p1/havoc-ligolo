@@ -5,7 +5,7 @@ A Havoc UI tool to pivot onto a machine using [ligolo-ng](https://github.com/Nic
 
 # Dependencies
 Make sure you have on your machine the following to use this tools:
- - kdesu
+ - kdesu or pkexec
  - go
  - tmux
 
