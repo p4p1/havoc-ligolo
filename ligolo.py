@@ -26,19 +26,19 @@ import os, json
 import subprocess
 from shutil import which
 
-current_dir = os.getcwd()
-install_path = "/data/extensions/havoc-ligolo/"
+ligolo_current_dir = os.getcwd()
+ligolo_install_path = "/data/extensions/havoc-ligolo/"
 
-while not os.path.exists(current_dir + install_path):
+while not os.path.exists(ligolo_current_dir + ligolo_install_path):
     # not installed through havoc-store so prompt for the path
-    install_path = ""
+    ligolo_install_path = ""
     havocui.inputdialog("Install path", "Please enter your install path here for the module to work correctly:")
 
 settings_pane = havocui.Widget("Ligolo Settings", True)
 sudo_command = "" # this is the wrapper for what will be passed to run a command as admin
-proxy_bin = current_dir + install_path + "ligolo-ng/proxy"
-agent_bin = current_dir + install_path + "ligolo-ng/agent.exe"
-conf_path = current_dir + install_path + "settings.json"
+proxy_bin = ligolo_current_dir + ligolo_install_path + "ligolo-ng/proxy"
+agent_bin = ligolo_current_dir + ligolo_install_path + "ligolo-ng/agent.exe"
+ligolo_conf_path = ligolo_current_dir + ligolo_install_path + "settings.json"
 arguments = "-selfcert -laddr %s:%s"
 tmux_session_for_server = "ligolo_server_havoc"
 selected_cidr_to_delete = ""
@@ -90,7 +90,7 @@ def run_save():
     if xor(settings_ligolo["certfile"] == "None", settings_ligolo["keyfile"] == "None"):
         havocui.errormessage("You have only set one of the two certificates...")
         return
-    with open(conf_path, "w") as fp:
+    with open(ligolo_conf_path, "w") as fp:
         json.dump(settings_ligolo, fp)
 
 # Actural GUI stuff for settings
@@ -182,13 +182,13 @@ else:
         sudo_command = "pkexec -u root"
     if which('kdesu') != None: # kdesu takes priority over pkexec if installed
         sudo_command = "kdesu -c"
-    if os.path.exists(conf_path):
-        with open(conf_path, "r") as fp:
+    if os.path.exists(ligolo_conf_path):
+        with open(ligolo_conf_path, "r") as fp:
             settings_ligolo = json.load(fp)
     if not os.path.exists(agent_bin) or not os.path.exists(proxy_bin):
-        os.chdir("%sligolo-ng/" % (current_dir + install_path))
+        os.chdir("%sligolo-ng/" % (ligolo_current_dir + ligolo_install_path))
         os.system("GOOS=windows go build -o agent.exe cmd/agent/main.go")
         os.system("go build -o proxy cmd/proxy/main.go")
-        os.chdir(current_dir)
+        os.chdir(ligolo_current_dir)
     havoc.RegisterCommand( run_client, "", "ligolo-ng", "Connect back to the ligolo server.", 0, "", "" )
     havocui.createtab("Ligolo", "Start server", start_server, "Add IP range", add_ip_range, "Settings", open_settings)
